@@ -3,255 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蒙提霍爾挑戰：100扇門數據視覺化</title>
+    <title>蒙提霍爾挑戰：100扇門</title>
     <style>
         body {
-            font-family: 'PingFang TC', 'Microsoft JhengHei', 'Segoe UI', sans-serif;
-            background-color: #e9ecef;
-            color: #212529;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
             text-align: center;
-            padding: 10px;
+            padding: 20px;
             margin: 0;
         }
         .container {
             max-width: 600px;
-            margin: 10px auto;
+            margin: 0 auto;
             background: white;
-            padding: 25px 15px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         h1 {
-            color: #1a1a1a;
-            font-size: 22px;
-            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 24px;
         }
-        .game-desc {
-            font-size: 15px;
-            color: #6c757d;
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-            text-align: left;
-            margin-bottom: 15px;
+        p {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.5;
         }
         .btn-group {
-            margin: 15px 0;
-            display: flex;
-            justify-content: space-around;
-            gap: 10px;
-        }
-        button {
-            flex-grow: 1;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 10px;
-            font-size: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: bold;
-        }
-        button:active {
-            transform: scale(0.97);
-        }
-        button.large-btn {
-            background-color: #e74c3c;
-            font-size: 16px;
-        }
-        
-        /* 結果區域 styling */
-        .results {
-            margin-top: 25px;
-            padding: 15px;
-            background-color: white;
-            border: 2px solid #dee2e6;
-            border-radius: 12px;
-            display: none; /* 初始隱藏 */
-            animation: fadeIn 0.5s ease-out;
-        }
-        h2 { font-size: 20px; margin-top: 0; }
-        
-        /* 視覺化長條圖 Styling - 關鍵部分 */
-        .chart-area {
             margin: 20px 0;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            text-align: left;
         }
-        
-        .chart-row {
-            display: flex;
-            align-items: center;
-        }
-        
-        .chart-label {
-            width: 80px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #495057;
-        }
-        
-        .bar-container {
-            flex-grow: 1;
-            background-color: #e0e0e0;
-            height: 35px; /* 增加高度更顯眼 */
-            border-radius: 17.5px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .bar {
-            height: 100%;
-            border-radius: 17.5px;
-            width: 0%; /* 初始寬度為 0，透過 JS 動態改變 */
-            transition: width 1s cubic-bezier(0.1, 0.7, 0.1, 1); /* 平滑動畫 */
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            position: relative;
-        }
-        
-        /* 策略 1: 不換 - 灰色、低對比 */
-        .bar-stay {
-            background-color: #95a5a6; 
-            background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
-            background-size: 1rem 1rem;
-        }
-        
-        /* 策略 2: 換門 - 鮮紅、強烈對比、帶霓虹光 */
-        .bar-switch {
-            background-color: #e74c3c;
-            box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); /* 霓虹光暈 */
-        }
-        
-        .percent-text {
+        button {
+            background-color: #3498db;
             color: white;
+            border: none;
+            padding: 15px 20px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
             font-weight: bold;
-            font-size: 16px;
-            margin-right: 12px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            white-space: nowrap;
         }
-        
-        .stat-details {
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 5px;
+        button:hover {
+            background-color: #2980b9;
         }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* 手機排版優化 */
-        @media (max-width: 400px) {
-            h1 { font-size: 18px; }
-            .game-desc { font-size: 13px; }
-            button { font-size: 13px; padding: 10px 5px; }
-            .percent-text { font-size: 14px; margin-right: 8px;}
+        button.large-btn {
+            background-color: #e74c3c;
+        }
+        button.large-btn:hover {
+            background-color: #c0392b;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            display: none; /* 初始隱藏，點擊後顯示 */
+        }
+        .stat {
+            margin: 15px 0;
+            font-size: 18px;
+        }
+        .highlight {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .win-stay {
+            color: #27ae60;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚪 100扇門：終極機率對決</h1>
-    <div class="game-desc">
-        你是參賽者，選了 1 號門。主持人（知道底細）幫你打開了剩下 99 扇門中的 <strong>98 扇羊門</strong>。現在只剩 1 號和最後一扇沒選的門。<br>
-        <strong>究竟「換」還是「不換」，勝率差別有多大？</strong>
-    </div>
+    <h1>🚪 100 扇門的終極考驗</h1>
+    <p>假設有 100 扇門，只有 1 扇後面是跑車，99 扇是羊。<br>你選了 1 號門後，主持人打開了 98 扇有羊的門，剩下 1 號跟你沒選的那扇。</p>
+    <p><strong>現在，讓程式幫你模擬成千上萬次的平行宇宙，看看哪種策略會贏！</strong></p>
 
     <div class="btn-group">
         <button onclick="runSimulation(100)">模擬 100 次</button>
-        <button onclick="runSimulation(10000)">模擬 1 萬次</button>
-        <button class="large-btn" onclick="runSimulation(100000)">🔥 十萬次平行宇宙</button>
+        <button onclick="runSimulation(10000)">模擬 10,000 次</button>
+        <button class="large-btn" onclick="runSimulation(100000)">🔥 終極模擬 100,000 次</button>
     </div>
 
     <div class="results" id="resultBox">
-        <h2>📊 實驗報告 (<span id="trialCount">0</span> 次遊戲)</h2>
-        
-        <div class="chart-area">
-            <div class="chart-row">
-                <div class="chart-label">堅持不換</div>
-                <div class="bar-container">
-                    <div class="bar bar-stay" id="barStay">
-                        <span class="percent-text" id="stayRate">0%</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="chart-row">
-                <div class="chart-label" style="color:#e74c3c;">一定要換</div>
-                <div class="bar-container" style="background-color: #fadbd8;">
-                    <div class="bar bar-switch" id="barSwitch">
-                        <span class="percent-text" id="switchRate">0%</span>
-                    </div>
-                </div>
-            </div>
+        <h2>📊 模擬結果 (<span id="trialCount">0</span> 次)</h2>
+        <div class="stat">
+            「堅持不換」中獎率：<br>
+            <span class="win-stay" id="stayRate">0%</span> 
+            <div style="font-size: 14px; color: #7f8c8d;">(贏了 <span id="stayWins">0</span> 次)</div>
         </div>
-
-        <div class="stat-details">
-            「不換」贏了 <span id="stayWins">0</span> 次，因為一開始就選中的機率是極低的 1%。<br>
-            「換門」贏了 <span id="switchWins">0</span> 次，因為只要你一開始選錯（99%機率），換門必中！
+        <div class="stat">
+            「一定要換」中獎率：<br>
+            <span class="highlight" id="switchRate">0%</span>
+            <div style="font-size: 14px; color: #7f8c8d;">(贏了 <span id="switchWins">0</span> 次)</div>
         </div>
     </div>
 </div>
 
 <script>
-    // 取得所有需要的網頁元素
-    const resultBox = document.getElementById('resultBox');
-    const trialCountSpan = document.getElementById('trialCount');
-    const stayWinsSpan = document.getElementById('stayWins');
-    const switchWinsSpan = document.getElementById('switchWins');
-    const stayRateSpan = document.getElementById('stayRate');
-    const switchRateSpan = document.getElementById('switchRate');
-    const barStay = document.getElementById('barStay');
-    const barSwitch = document.getElementById('barSwitch');
-
     function runSimulation(trials) {
-        // 為了讓動畫重新跑，先隱藏結果
-        resultBox.style.display = 'none';
-        barStay.style.width = '0%';
-        barSwitch.style.width = '0%';
-
         let stayWins = 0;
         let switchWins = 0;
 
-        // 進行模擬 (核心邏輯不變，10萬次在 JS 很快)
         for (let i = 0; i < trials; i++) {
+            // 隨機決定跑車在哪裡 (1 到 100)
             let winningDoor = Math.floor(Math.random() * 100) + 1;
+            // 玩家盲選一扇門 (1 到 100)
             let chosenDoor = Math.floor(Math.random() * 100) + 1;
 
+            // 如果一開始就選中，不換就會贏
             if (chosenDoor === winningDoor) {
-                stayWins++; // 不換會贏
-            } else {
-                switchWins++; // 只要選錯，主持人排羊後，換了就會贏車
+                stayWins++;
+            } 
+            // 如果一開始選錯（99%機率），因為主持人排除了所有剩下的羊，換門必定中獎！
+            else {
+                switchWins++;
             }
         }
 
         // 計算百分比
-        let stayRate = ((stayWins / trials) * 100).toFixed(1); // 取一位小數即可
-        let switchRate = ((switchWins / trials) * 100).toFixed(1);
+        let stayRate = ((stayWins / trials) * 100).toFixed(2);
+        let switchRate = ((switchWins / trials) * 100).toFixed(2);
 
-        // 立即更新文字數字
-        trialCountSpan.innerText = trials.toLocaleString('en-US');
-        stayWinsSpan.innerText = stayWins.toLocaleString('en-US');
-        switchWinsSpan.innerText = switchWins.toLocaleString('en-US');
-        stayRateSpan.innerText = stayRate + '%';
-        switchRateSpan.innerText = switchRate + '%';
+        // 更新網頁畫面
+        document.getElementById('trialCount').innerText = trials.toLocaleString();
+        document.getElementById('stayWins').innerText = stayWins.toLocaleString();
+        document.getElementById('switchWins').innerText = switchWins.toLocaleString();
+        document.getElementById('stayRate').innerText = stayRate + '%';
+        document.getElementById('switchRate').innerText = switchRate + '%';
 
-        // 顯示結果區塊 (觸發 fadeIn 動畫)
-        resultBox.style.display = 'block';
-
-        // *** 視覺強化的關鍵 ***
-        // 利用 setTimeout 微小延遲，確保 width 的 CSS transition 動畫能成功觸發
-        setTimeout(() => {
-            barStay.style.width = stayRate + '%';
-            barSwitch.style.width = switchRate + '%';
-        }, 50);
+        // 顯示結果區塊
+        document.getElementById('resultBox').style.display = 'block';
     }
 </script>
 
