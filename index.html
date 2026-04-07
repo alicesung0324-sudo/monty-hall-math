@@ -2,146 +2,324 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蒙提霍爾挑戰：100扇門</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>蒙提霍爾機率遊戲</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: #1e272e;
+            color: #d2dae2;
             text-align: center;
-            padding: 20px;
             margin: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            font-size: 24px;
-        }
-        p {
-            font-size: 16px;
-            color: #555;
-            line-height: 1.5;
-        }
-        .btn-group {
-            margin: 20px 0;
+            padding: 10px;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #2d3436;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+        h1 { color: #f1c40f; font-size: 24px; margin-bottom: 5px; }
+        .prompt-text {
+            font-size: 18px;
+            color: #00d8d6;
+            margin: 15px 0;
+            min-height: 50px;
+            font-weight: bold;
+        }
+        
+        /* 門的網格系統 */
+        .door-grid {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        /* 3門與10門的排版 */
+        .grid-normal { grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); }
+        /* 100門的密集排版 */
+        .grid-dense { grid-template-columns: repeat(10, 1fr); gap: 4px; }
+        
+        .door {
+            background-color: #e17055;
+            border: 3px solid #b33939;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            user-select: none;
+        }
+        .grid-normal .door { height: 90px; }
+        .grid-dense .door { height: 35px; font-size: 14px; border-width: 1px; border-radius: 4px;}
+        
+        .door:hover { transform: scale(1.05); filter: brightness(1.2); }
+        .door.selected { border-color: #0fb9b1; box-shadow: 0 0 15px #0fb9b1; transform: translateY(-5px); }
+        .door.open { background-color: #bdc3c7; border-color: #95a5a6; cursor: default; transform: none; }
+        .door.open:hover { filter: brightness(1); }
+        .door.car { background-color: #ffd32a; }
+
+        /* 按鈕區 */
+        .action-btns {
+            display: none; /* 初始隱藏 */
             gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
         }
         button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 15px 20px;
+            padding: 12px 25px;
             font-size: 18px;
+            font-weight: bold;
+            border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s;
-            font-weight: bold;
+            color: white;
+            transition: transform 0.1s;
         }
-        button:hover {
-            background-color: #2980b9;
+        button:active { transform: scale(0.95); }
+        .btn-stay { background-color: #576574; }
+        .btn-switch { background-color: #ff3f34; box-shadow: 0 0 10px rgba(255, 63, 52, 0.5); }
+        .btn-next { background-color: #0be881; display: none; margin: 20px auto; width: 100%; color: #2d3436;}
+
+        /* 統計面板 */
+        .stats {
+            margin-top: 25px;
+            padding: 15px;
+            background: #1e272e;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
         }
-        button.large-btn {
-            background-color: #e74c3c;
-        }
-        button.large-btn:hover {
-            background-color: #c0392b;
-        }
-        .results {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #ecf0f1;
-            border-radius: 8px;
-            display: none; /* 初始隱藏，點擊後顯示 */
-        }
-        .stat {
-            margin: 15px 0;
-            font-size: 18px;
-        }
-        .highlight {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e74c3c;
-        }
-        .win-stay {
-            color: #27ae60;
-            font-weight: bold;
-        }
+        .stat-box { display: flex; flex-direction: column; align-items: center;}
+        .stat-num { font-size: 24px; font-weight: bold; margin-top: 5px; }
+        .color-stay { color: #a4b0be; }
+        .color-switch { color: #ff5252; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚪 100 扇門的終極考驗</h1>
-    <p>假設有 100 扇門，只有 1 扇後面是跑車，99 扇是羊。<br>你選了 1 號門後，主持人打開了 98 扇有羊的門，剩下 1 號跟你沒選的那扇。</p>
-    <p><strong>現在，讓程式幫你模擬成千上萬次的平行宇宙，看看哪種策略會贏！</strong></p>
+    <h1>🚪 蒙提霍爾闖關：<span id="levelText">第 1 關 (3 扇門)</span></h1>
+    <div class="prompt-text" id="promptText">請點擊選擇一扇門！</div>
 
-    <div class="btn-group">
-        <button onclick="runSimulation(100)">模擬 100 次</button>
-        <button onclick="runSimulation(10000)">模擬 10,000 次</button>
-        <button class="large-btn" onclick="runSimulation(100000)">🔥 終極模擬 100,000 次</button>
+    <div class="door-grid grid-normal" id="doorGrid">
+        </div>
+
+    <div class="action-btns" id="actionBtns">
+        <button class="btn-stay" onclick="makeChoice('stay')">堅持不換</button>
+        <button class="btn-switch" onclick="makeChoice('switch')">我要換門！</button>
     </div>
 
-    <div class="results" id="resultBox">
-        <h2>📊 模擬結果 (<span id="trialCount">0</span> 次)</h2>
-        <div class="stat">
-            「堅持不換」中獎率：<br>
-            <span class="win-stay" id="stayRate">0%</span> 
-            <div style="font-size: 14px; color: #7f8c8d;">(贏了 <span id="stayWins">0</span> 次)</div>
+    <button class="btn-next" id="nextBtn" onclick="nextRound()">再玩一次 (累積數據)</button>
+    <button class="btn-next" id="levelUpBtn" style="background-color:#fbc531;" onclick="levelUp()">晉級下一關！增加門數</button>
+
+    <div class="stats">
+        <div class="stat-box color-stay">
+            <span>「不換」勝率</span>
+            <span class="stat-num" id="stayRate">0%</span>
+            <span style="font-size: 12px; margin-top:5px;">贏 <span id="stayWins">0</span> / 玩 <span id="stayPlays">0</span></span>
         </div>
-        <div class="stat">
-            「一定要換」中獎率：<br>
-            <span class="highlight" id="switchRate">0%</span>
-            <div style="font-size: 14px; color: #7f8c8d;">(贏了 <span id="switchWins">0</span> 次)</div>
+        <div class="stat-box color-switch">
+            <span>「換門」勝率</span>
+            <span class="stat-num" id="switchRate">0%</span>
+            <span style="font-size: 12px; margin-top:5px;">贏 <span id="switchWins">0</span> / 玩 <span id="switchPlays">0</span></span>
         </div>
     </div>
 </div>
 
 <script>
-    function runSimulation(trials) {
-        let stayWins = 0;
-        let switchWins = 0;
+    // 遊戲狀態與設定
+    const levels = [3, 10, 100];
+    let currentLevelIdx = 0;
+    let doorCount = levels[currentLevelIdx];
+    
+    let winningDoor = -1;
+    let selectedDoor = -1;
+    let state = 'SELECT'; // 狀態: SELECT, DECIDE, OVER
 
-        for (let i = 0; i < trials; i++) {
-            // 隨機決定跑車在哪裡 (1 到 100)
-            let winningDoor = Math.floor(Math.random() * 100) + 1;
-            // 玩家盲選一扇門 (1 到 100)
-            let chosenDoor = Math.floor(Math.random() * 100) + 1;
+    // 統計數據
+    let stats = {
+        stay: { plays: 0, wins: 0 },
+        switch: { plays: 0, wins: 0 }
+    };
 
-            // 如果一開始就選中，不換就會贏
-            if (chosenDoor === winningDoor) {
-                stayWins++;
-            } 
-            // 如果一開始選錯（99%機率），因為主持人排除了所有剩下的羊，換門必定中獎！
-            else {
-                switchWins++;
+    const grid = document.getElementById('doorGrid');
+    const promptText = document.getElementById('promptText');
+    const actionBtns = document.getElementById('actionBtns');
+    const nextBtn = document.getElementById('nextBtn');
+    const levelUpBtn = document.getElementById('levelUpBtn');
+
+    // 初始化關卡
+    function initGame() {
+        state = 'SELECT';
+        selectedDoor = -1;
+        doorCount = levels[currentLevelIdx];
+        winningDoor = Math.floor(Math.random() * doorCount);
+        
+        // 更新標題與版面
+        document.getElementById('levelText').innerText = doorCount === 100 ? `終極關卡 (100 扇門)` : `第 ${currentLevelIdx + 1} 關 (${doorCount} 扇門)`;
+        grid.className = doorCount > 20 ? 'door-grid grid-dense' : 'door-grid grid-normal';
+        
+        promptText.innerText = "請點擊選擇一扇門！";
+        promptText.style.color = "#00d8d6";
+        actionBtns.style.display = "none";
+        nextBtn.style.display = "none";
+        levelUpBtn.style.display = "none";
+        
+        // 產生門
+        grid.innerHTML = '';
+        for (let i = 0; i < doorCount; i++) {
+            let door = document.createElement('div');
+            door.className = 'door';
+            door.innerText = doorCount > 20 ? '' : '🚪';
+            door.onclick = () => selectDoor(i);
+            grid.appendChild(door);
+        }
+    }
+
+    // 玩家選擇第一扇門
+    function selectDoor(index) {
+        if (state !== 'SELECT') return;
+        selectedDoor = index;
+        
+        // 視覺標記選中的門
+        grid.children[selectedDoor].classList.add('selected');
+        
+        // 主持人開門邏輯
+        openHostDoors();
+    }
+
+    // 主持人打開除了玩家選的，以及另一扇(可能包含獎品)以外的所有門
+    function openHostDoors() {
+        let doorsToLeaveClosed = [selectedDoor];
+        
+        if (selectedDoor === winningDoor) {
+            // 玩家一開始就猜中：主持人隨機留下一扇有羊的門
+            let availableWrongDoors = [];
+            for (let i = 0; i < doorCount; i++) {
+                if (i !== selectedDoor) availableWrongDoors.push(i);
+            }
+            let randomWrongDoor = availableWrongDoors[Math.floor(Math.random() * availableWrongDoors.length)];
+            doorsToLeaveClosed.push(randomWrongDoor);
+        } else {
+            // 玩家猜錯：主持人必須留下有車的那扇門
+            doorsToLeaveClosed.push(winningDoor);
+        }
+
+        // 開門動畫與設定
+        let openedCount = 0;
+        for (let i = 0; i < doorCount; i++) {
+            if (!doorsToLeaveClosed.includes(i)) {
+                grid.children[i].classList.add('open');
+                grid.children[i].innerText = '🐐';
+                openedCount++;
             }
         }
 
-        // 計算百分比
-        let stayRate = ((stayWins / trials) * 100).toFixed(2);
-        let switchRate = ((switchWins / trials) * 100).toFixed(2);
-
-        // 更新網頁畫面
-        document.getElementById('trialCount').innerText = trials.toLocaleString();
-        document.getElementById('stayWins').innerText = stayWins.toLocaleString();
-        document.getElementById('switchWins').innerText = switchWins.toLocaleString();
-        document.getElementById('stayRate').innerText = stayRate + '%';
-        document.getElementById('switchRate').innerText = switchRate + '%';
-
-        // 顯示結果區塊
-        document.getElementById('resultBox').style.display = 'block';
+        // 進入抉擇階段
+        state = 'DECIDE';
+        promptText.innerHTML = `主持人打開了 <strong>${openedCount}</strong> 扇有羊的門！<br><span style="color:#ff9f43">現在，你要換門嗎？</span>`;
+        actionBtns.style.display = "flex";
     }
+
+    // 玩家決定換或不換
+    function makeChoice(choice) {
+        if (state !== 'DECIDE') return;
+        state = 'OVER';
+        actionBtns.style.display = "none";
+
+        let finalDoor = selectedDoor;
+        if (choice === 'switch') {
+            // 找出另一扇沒開的門
+            for (let i = 0; i < doorCount; i++) {
+                if (i !== selectedDoor && !grid.children[i].classList.contains('open')) {
+                    finalDoor = i;
+                    break;
+                }
+            }
+            // 轉移視覺焦點
+            grid.children[selectedDoor].classList.remove('selected');
+            grid.children[finalDoor].classList.add('selected');
+        }
+
+        // 判斷勝負
+        let isWin = (finalDoor === winningDoor);
+        
+        // 打開所有門揭曉
+        for (let i = 0; i < doorCount; i++) {
+            if (i === winningDoor) {
+                grid.children[i].innerText = '🚗';
+                grid.children[i].classList.add('car');
+            } else {
+                grid.children[i].innerText = '🐐';
+            }
+        }
+
+        // 更新統計與畫面
+        stats[choice].plays++;
+        if (isWin) {
+            stats[choice].wins++;
+            promptText.innerHTML = `🎉 恭喜中大獎 (跑車)！<br>你使用了「${choice==='stay'?'不換':'換門'}」策略。`;
+            promptText.style.color = "#0be881";
+        } else {
+            promptText.innerHTML = `😭 殘念，是一隻羊！<br>你使用了「${choice==='stay'?'不換':'換門'}」策略。`;
+            promptText.style.color = "#ff5252";
+        }
+
+        updateStatsUI();
+
+        // 顯示下一回合按鈕
+        nextBtn.style.display = "block";
+        // 如果已經玩了幾次，且還不是最後一關，提示可以晉級
+        let totalPlays = stats.stay.plays + stats.switch.plays;
+        if (totalPlays >= 3 && currentLevelIdx < levels.length - 1) {
+            levelUpBtn.style.display = "block";
+        }
+    }
+
+    function updateStatsUI() {
+        let stayRate = stats.stay.plays > 0 ? Math.round((stats.stay.wins / stats.stay.plays) * 100) : 0;
+        let switchRate = stats.switch.plays > 0 ? Math.round((stats.switch.wins / stats.switch.plays) * 100) : 0;
+        
+        document.getElementById('stayRate').innerText = stayRate + '%';
+        document.getElementById('stayWins').innerText = stats.stay.wins;
+        document.getElementById('stayPlays').innerText = stats.stay.plays;
+        
+        document.getElementById('switchRate').innerText = switchRate + '%';
+        document.getElementById('switchWins').innerText = stats.switch.wins;
+        document.getElementById('switchPlays').innerText = stats.switch.plays;
+    }
+
+    function nextRound() { initGame(); }
+
+    function levelUp() {
+        if (currentLevelIdx < levels.length - 1) {
+            currentLevelIdx++;
+            initGame();
+        }
+    }
+
+    // 啟動遊戲
+    initGame();
 </script>
 
 </body>
 </html>
+            
+            
+            
+            
+  
+
+      
